@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Institution;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class InstitutionSeeder extends Seeder
@@ -13,6 +12,18 @@ class InstitutionSeeder extends Seeder
      */
     public function run(): void
     {
-        Institution::factory()->count(10)->create();
+        Institution::create([
+            'name' => 'Shell Uganda',
+            'address' => 'Kampala, Uganda',
+            'email' => 'contact@shelluganda.com',
+            'phone' => '256-700-000-001',
+        ]);
+
+        Institution::create([
+            'name' => 'Cafe Javas',
+            'address' => 'Kampala, Uganda',
+            'email' => 'info@cafejavas.com',
+            'phone' => '256-700-000-002',
+        ]);
     }
 }
