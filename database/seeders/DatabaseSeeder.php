@@ -17,6 +17,12 @@ class DatabaseSeeder extends Seeder
             LoanProductSeeder::class,
             LoanProductTermSeeder::class,
             LoanApplicationSeeder::class,
+            LoanSeeder::class,
+            LoanScheduleSeeder::class,
+            LoanRepaymentSeeder::class,
+            AccountSeeder::class,
+            TransactionSeeder::class,
+            FloatTopupSeeder::class,
         ]);
     }
 }
