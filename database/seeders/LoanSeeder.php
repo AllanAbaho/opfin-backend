@@ -33,15 +33,12 @@ class LoanSeeder extends Seeder
             'institution_id' => $institution->id,
             'loan_application_id' => $loanApplication->id,
             'amount' => 10000,
-            'status' => 'Pending',
+            'status' => 'Cleared',
             'reason' => 'Business Expansion',
             'disbursed_at' => now(),
             'duration' => $duration,
-            'interest_rate' => 5.5,
-            'interest_type' => 'Flat',
             'repayment_amount' => 10500,
             'repayment_start_date' => now()->addDay(),
-            'repayment_end_date' => now()->addDays($duration),
         ]);
     }
 }

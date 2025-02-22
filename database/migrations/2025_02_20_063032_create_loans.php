@@ -19,15 +19,12 @@ return new class extends Migration
             $table->foreignId('institution_id')->constrained();
             $table->foreignId('loan_application_id')->constrained();
             $table->unsignedBigInteger('amount');
+            $table->unsignedBigInteger('repayment_amount');
+            $table->integer('duration');
+            $table->string('repayment_start_date');
             $table->string('status')->default('Pending');
             $table->string('reason')->nullable();
             $table->string('disbursed_at')->nullable();
-            $table->integer('duration');
-            $table->decimal('interest_rate');
-            $table->string('interest_type');
-            $table->unsignedBigInteger('repayment_amount');
-            $table->string('repayment_start_date');
-            $table->string('repayment_end_date');
             $table->timestamps();
         });
     }

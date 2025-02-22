@@ -10,6 +10,8 @@ class LoanProductTerm extends Model
         'loan_product_id',
         'interest_rate',
         'interest_type',
+        'interest_cycle',
+        'repayment_frequency',
         'duration',
         'status',
     ];

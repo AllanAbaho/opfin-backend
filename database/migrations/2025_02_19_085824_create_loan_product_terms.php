@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('loan_product_id')->constrained();
             $table->decimal('interest_rate')->default(12);
-            $table->enum('interest_type', ['Flat', 'Armotization'])->default('Flat');
+            $table->enum('interest_type', ['Flat', 'Amortization'])->default('Flat');
+            $table->enum('interest_cycle', ['Weekly', 'Monthly'])->default('Monthly');
+            $table->enum('repayment_frequency', ['Weekly', 'Monthly'])->default('Monthly');
             $table->integer('duration')->default(30);
             $table->enum('status', ['Active', 'Inactive'])->default('Active');
             $table->timestamps();

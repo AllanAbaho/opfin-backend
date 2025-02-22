@@ -21,17 +21,16 @@ class LoanProductTermSeeder extends Seeder
         LoanProductTerm::create([
             'loan_product_id' => $cashLoanProduct->id,
             'interest_rate' => 12,
-            'interest_type' => 'Flat',
             'duration' => 30,
-            'status' => 'Active',
+            'interest_type' => 'Amortization',
+            'repayment_frequency' => 'Weekly',
         ]);
 
         LoanProductTerm::create([
             'loan_product_id' => $assetLoanProduct->id,
             'interest_rate' => 12,
-            'interest_type' => 'Flat',
             'duration' => 30,
-            'status' => 'Active',
+            'repayment_frequency' => 'Monthly',
         ]);
     }
 }

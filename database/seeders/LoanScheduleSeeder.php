@@ -29,7 +29,7 @@ class LoanScheduleSeeder extends Seeder
                 'principal' => $principal,
                 'interest' => $interest,
                 'balance' => $totalAmount,
-                'due_date' => $loan->repayment_end_date,
+                'due_date' => $loan->repayment_start_date
             ]);
         }
     }
