@@ -36,7 +36,22 @@ class Loan extends Model
 
         static::created(function ($loan) {
             $loan->createLoanSchedule();
+            $loan->createTransaction();
         });
+    }
+
+    public function createTransaction()
+    {
+        Transaction::create([
+            'user_id' => $this->user_id,
+            'institution_id' => $this->institution_id,
+            'loan_id' => $this->id,
+            'type' => 'Disbursement',
+            'amount' => $this->amount,
+            'phone' => $this->user->phone,
+            'reference' => 'D-' . strtoupper(uniqid()),
+            'status' => 'Pending',
+        ]);
     }
 
     public function createLoanSchedule()
@@ -104,7 +119,7 @@ class Loan extends Model
                 'due_date' => $repaymentStartDate->copy()->addDays($daysBetweenInstallments * $i),
                 'principal' => $principal,
                 'interest' => $interest,
-                'balance' => $remainingBalance,
+                'balance' => $principal + $interest,
             ]);
         }
     }
@@ -187,5 +202,18 @@ class Loan extends Model
     public function loanProductTerm()
     {
         return $this->belongsTo(LoanProductTerm::class);
+    }
+
+    /**
+     * Get the loan schedules for the loan.
+     */
+    public function schedules()
+    {
+        return $this->hasMany(LoanSchedule::class);
+    }
+
+    public function totalOutstandingAmount()
+    {
+        return $this->schedules->sum('balance');
     }
 }
