@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Models\LoanRepayment;
@@ -9,6 +10,7 @@ use App\Models\Transaction;
 use App\Services\SmsService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
 
 class TransactionController extends Controller
 {

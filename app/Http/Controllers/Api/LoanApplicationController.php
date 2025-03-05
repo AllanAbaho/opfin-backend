@@ -1,22 +1,30 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\LoanApplication;
 use App\Models\Loan;
+use App\Models\LoanProduct;
+use App\Models\LoanProductTerm;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Models\Institution;
 
 class LoanApplicationController extends Controller
 {
-    /**
-     * Store a newly created loan application in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    public function index($id)
+    {
+        try {
+            $applications = LoanApplication::where('user_id', $id)->with(['user', 'loanProduct', 'loanProductTerm', 'institution'])->get();
+            return response()->json(['data' => $applications], 200);
+        } catch (Exception $e) {
+            return response()->json(['error', $e->getMessage()], 500);
+        }
+    }
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -29,7 +37,7 @@ class LoanApplicationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            throw new Exception($validator->errors()->first());
         }
 
         try {
@@ -39,7 +47,7 @@ class LoanApplicationController extends Controller
                 ->first();
 
             if ($unclearedLoan) {
-                return response()->json(['error' => 'User has an uncleared loan.'], 400);
+                throw new Exception('User has an uncleared loan.');
             }
 
             $loanApplication = LoanApplication::create([
@@ -56,10 +64,10 @@ class LoanApplicationController extends Controller
                 'cancelled_at' => null,
             ]);
 
-            return response()->json(['loan_application' => $loanApplication], 201);
+            return response()->json(['data' => $loanApplication], 201);
         } catch (\Exception $e) {
             Log::error('Error creating loan application: ' . $e->getMessage());
-            return response()->json(['error' => 'An error occurred while creating the loan application.'], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
@@ -78,7 +86,7 @@ class LoanApplicationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['error' => $validator->errors()->first()], 422);
         }
 
         try {
@@ -103,7 +111,7 @@ class LoanApplicationController extends Controller
 
             $loanApplication->save();
             DB::commit();
-            return response()->json(['loan_application' => $loanApplication], 200);
+            return response()->json(['data' => $loanApplication], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating loan application status: ' . $e->getMessage());
@@ -143,5 +151,35 @@ class LoanApplicationController extends Controller
             'repayment_amount' => Loan::getRepaymentAmount($interestRate, $loanAmount, $interestType, $numberOfInstallments, $interestCycle), // Correct repayment amount based on interest type
             'repayment_start_date' => Loan::getRepaymentStartDate($repaymentFrequency),
         ]);
+    }
+
+    public function getProducts()
+    {
+        try {
+            $products = LoanProduct::all();
+            return response()->json(['data' => $products], 200);
+        } catch (Exception $e) {
+            return response()->json(['error', $e->getMessage()], 500);
+        }
+    }
+
+    public function getProductTerms($id)
+    {
+        try {
+            $terms = LoanProductTerm::where('loan_product_id', $id)->get();
+            return response()->json(['data' => $terms], 200);
+        } catch (Exception $e) {
+            return response()->json(['error', $e->getMessage()], 500);
+        }
+    }
+
+    public function getInstitutions()
+    {
+        try {
+            $institutions = Institution::all();
+            return response()->json(['data' => $institutions], 200);
+        } catch (Exception $e) {
+            return response()->json(['error', $e->getMessage()], 500);
+        }
     }
 }
