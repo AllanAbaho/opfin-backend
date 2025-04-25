@@ -8,12 +8,63 @@ use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    // Show account deletion form
+    public function showDeleteForm()
+    {
+        return view('account.delete');
+    }
+
+    // Process account deletion
+    public function destroy(Request $request)
+    {
+        try {
+            $request->validate([
+                'phone' => ['required'],
+                'password' => ['required'],
+                'confirmation' => ['required', 'in:DELETE']
+            ], [
+                'phone.required' => 'The phone number is required.',
+                'phone.exists' => 'This phone number is not registered.',
+                'password.required' => 'Please enter your password.',
+                'confirmation.required' => 'Confirmation is required.',
+                'confirmation.in' => 'Please type "DELETE" to confirm.'
+            ]);
+            $user = User::where('phone', $request->phone)->first();
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return redirect()->back()->with('error', 'User details provided are invalid');
+            }
+            $user->delete();
+
+            return redirect('/')->with('success', 'Your account has been permanently deleted.');
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+    //to be implemented
+    protected function beforeUserDelete($user)
+    {
+        // Anonymize user data for compliance
+        $user->update([
+            'email' => 'deleted-' . $user->id . '@deleted.example',
+            'phone' => null,
+            'first_name' => 'Deleted',
+            'last_name' => 'User',
+            'deleted_at' => now(),
+        ]);
+
+        // Optional: Cancel pending transactions
+        // $user->loans()->update(['status' => 'cancelled']);
+
+        // Add any other data cleanup needed for your financial app
+    }
+
     public function register(Request $request)
     {
         try {
