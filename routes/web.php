@@ -19,4 +19,7 @@ Route::delete('/account/delete', [AuthController::class, 'destroy'])->name('acco
 
 Route::middleware('auth')->group(function () {
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    Route::get('/loan-applications', [App\Http\Controllers\LoanApplicationsController::class, 'index'])->name('loan-applications.index');
+    Route::get('/transactions', [App\Http\Controllers\TransactionsController::class, 'index'])->name('transactions.index');
+    Route::get('/users', [App\Http\Controllers\UsersController::class, 'index'])->name('users.index');
 });

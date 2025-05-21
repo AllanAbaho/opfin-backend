@@ -23,7 +23,6 @@ class User extends Authenticatable
         'phone',
         'password',
         'role',
-        'institution_id',
         'is_admin',
     ];
 
@@ -48,5 +47,10 @@ class User extends Authenticatable
             'phone_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function institution()
+    {
+        return $this->belongsTo(Institution::class);
     }
 }
