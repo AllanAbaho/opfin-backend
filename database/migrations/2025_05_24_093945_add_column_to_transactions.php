@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->softDeletes();
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->foreignId('loan_application_id')->after('institution_id')->constrained();
         });
     }
 
@@ -21,8 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('deleted_at');
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->dropForeign(['loan_application_id']);
+            $table->dropColumn('loan_application_id');
         });
     }
 };

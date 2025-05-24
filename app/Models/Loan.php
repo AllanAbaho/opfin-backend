@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class Loan extends Model
 {
@@ -36,22 +37,7 @@ class Loan extends Model
 
         static::created(function ($loan) {
             $loan->createLoanSchedule();
-            $loan->createTransaction();
         });
-    }
-
-    public function createTransaction()
-    {
-        Transaction::create([
-            'user_id' => $this->user_id,
-            'institution_id' => $this->institution_id,
-            'loan_id' => $this->id,
-            'type' => 'Disbursement',
-            'amount' => $this->amount,
-            'phone' => $this->user->phone,
-            'reference' => 'D-' . strtoupper(uniqid()),
-            'status' => 'Pending',
-        ]);
     }
 
     public function createLoanSchedule()
