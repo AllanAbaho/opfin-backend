@@ -185,6 +185,14 @@ class Loan extends Model
     /**
      * Get the loan product term that the loan belongs to.
      */
+    public function loanProduct()
+    {
+        return $this->belongsTo(LoanProduct::class);
+    }
+
+    /**
+     * Get the loan product term that the loan belongs to.
+     */
     public function loanProductTerm()
     {
         return $this->belongsTo(LoanProductTerm::class);

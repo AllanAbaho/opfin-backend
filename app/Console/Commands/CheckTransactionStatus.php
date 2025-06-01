@@ -34,9 +34,7 @@ class CheckTransactionStatus extends Command
      */
     public function handle()
     {
-        $smsService = new  SmsService();
-        $sent = $smsService->sendSms('256700460055', 'Hi Abaho');
-        dd($sent);
+        Log::info('Checking transaction status');
         try {
             $merchantNumber = env('MOBILE_MONEY_MERCHANT_ID');
             $transactions = Transaction::whereIn('status', ['PENDING', 'UNDETERMINED'])->get();
@@ -194,7 +192,7 @@ class CheckTransactionStatus extends Command
 
             // Queue SMS for disbursement
             $smsService = new SmsService();
-            $smsService->queueSms($transaction->loan->user->phone, $message);
+            $smsService->queueSms(ltrim($transaction->user->phone, '+'), $message);
         } catch (\Exception $e) {
             Log::error('Error on disbursement: ' . $e->getMessage());
         }

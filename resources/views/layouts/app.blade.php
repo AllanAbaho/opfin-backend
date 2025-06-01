@@ -10,70 +10,70 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url('/') }}">Loan System</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('users*') ? 'active' : '' }}"
-                            href="{{ route('users.index') }}">Users</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('loan-applications*') ? 'active' : '' }}"
-                            href="{{ route('loan-applications.index') }}">Loan Applications</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('transactions*') ? 'active' : '' }}"
-                            href="{{ route('transactions.index') }}">Transactions</a>
-                    </li>
-                    <!-- Add more menu items here as needed -->
-                    <!--
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Customers</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Loan Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Reports</a>
-                    </li>
-                    -->
-                </ul>
-                <ul class="navbar-nav">
+    @if (!request()->is('/'))
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="{{ url('/') }}">Loan System</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
                     @auth
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                                data-bs-toggle="dropdown">
-                                {{ Auth::user()->name }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#">Profile</a></li>
-                                <li>
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    @else
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('login') }}">Login</a>
-                        </li>
-                        @if (Route::has('register'))
+                        <ul class="navbar-nav me-auto">
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('register') }}">Register</a>
+                                <a class="nav-link {{ request()->is('users*') ? 'active' : '' }}"
+                                    href="{{ route('users.index') }}">Users</a>
                             </li>
-                        @endif
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('loan-applications*') ? 'active' : '' }}"
+                                    href="{{ route('loan-applications.index') }}">Loan Applications</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('transactions*') ? 'active' : '' }}"
+                                    href="{{ route('transactions.index') }}">Transactions</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('loans*') ? 'active' : '' }}"
+                                    href="{{ route('loans.index') }}">Loans</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('sms-messages*') ? 'active' : '' }}"
+                                    href="{{ route('sms-messages.index') }}">SMS Messages</a>
+                            </li>
+                        </ul>
                     @endauth
-                </ul>
+                    <ul class="navbar-nav">
+                        @auth
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                                    data-bs-toggle="dropdown">
+                                    {{ Auth::user()->name }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                                    <li>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item">Logout</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        @else
+                            {{-- <li class="nav-item">
+                                <a class="nav-link" href="{{ route('login') }}">Login</a>
+                            </li> --}}
+                            @if (Route::has('register'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('register') }}">Register</a>
+                                </li>
+                            @endif
+                        @endauth
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    @endif
 
     <div class="container my-4">
         @yield('content')

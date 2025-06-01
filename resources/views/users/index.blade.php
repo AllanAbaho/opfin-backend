@@ -54,8 +54,7 @@
                                         Active
                                     </span>
                                 </td>
-                                <td>{{ $user->created_at->format('M d, Y') }}</td>
-
+                                <td>{{ $user->created_at?->format('M d, Y') }}</td>
                             </tr>
                         @empty
                             <tr>
