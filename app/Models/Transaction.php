@@ -24,6 +24,7 @@ class Transaction extends Model
         'phone',
         'reference',
         'external_reference',
+        'network_reference',
         'status',
     ];
 

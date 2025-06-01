@@ -33,8 +33,8 @@ class SendSms implements ShouldQueue
      */
     public function handle(SmsService $smsService)
     {
-        $smsService->sendSms($this->smsMessage->to, $this->smsMessage->message);
-        $this->smsMessage->status = 'Sent';
+        $sent = $smsService->sendSms($this->smsMessage->to, $this->smsMessage->message);
+        $this->smsMessage->status = $sent ? 'Sent' : 'Failed';
         $this->smsMessage->save();
     }
 }
