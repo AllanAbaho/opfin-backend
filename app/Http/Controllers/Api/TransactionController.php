@@ -7,10 +7,11 @@ use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Models\LoanRepayment;
 use App\Models\Transaction;
+use App\Services\LoanService;
 use App\Services\SmsService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
 
 class TransactionController extends Controller
 {
@@ -177,5 +178,96 @@ class TransactionController extends Controller
             $schedule->save();
         }
         return $remainingAmount;
+    }
+    /**
+     * Approve a pending transaction.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function handleCallback(Request $request)
+    {
+        try {
+
+            // Validate the incoming request
+            $validated = $request->validate([
+                'amount' => 'required|numeric',
+                'payer_number' => 'required|string',
+                'reference' => 'required|string',
+                'signature' => 'required|string',
+                'Network_ref' => 'required|string',
+                'status' => 'required|string|in:SUCCESSFUL,FAILED,PENDING',
+                'description' => 'nullable|string',
+                'created_on_on' => 'required|date',
+                'completed_on' => 'required|date',
+            ]);
+            // Log the incoming callback for debugging
+            Log::info('Payment callback received', $validated);
+
+            // Find the transaction by reference
+            $transaction = Transaction::where('reference', $validated['reference'])->first();
+
+            if (!$transaction) {
+                Log::error('Transaction not found', ['reference' => $validated['reference']]);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Transaction not found'
+                ], 404);
+            }
+
+            // Update transaction status
+            $transaction->update([
+                'status' => $validated['status'],
+                'network_reference' => $validated['Network_ref'],
+                'updated_at' => $validated['completed_on'],
+            ]);
+
+            // Log successful update
+            Log::info('Transaction updated successfully', [
+                'transaction_id' => $transaction->id,
+                'new_status' => $transaction->status
+            ]);
+
+            // Additional business logic based on payment status
+            if ($validated['status'] === 'SUCCESSFUL') {
+
+                if ($transaction->type == 'Disbursement') {
+                    $transaction->loanApplication->update([
+                        'status' => 'Disbursed',
+                        'disbursed_at' => now(),
+                    ]);
+                    $loanService = app(LoanService::class);
+                    $loanService->createLoanFromApplication($transaction->loanApplication);
+                }
+                if ($transaction->type == 'Repayment') {
+                    $schedules = $transaction->loan->schedules();
+                    foreach ($schedules as $schedule) {
+                        $schedule->applyPayment($transaction->amount);
+                    }
+                    $loanService = app(LoanService::class);
+                    $loanService->processCollection($transaction->loan->transaction);
+                }
+            } else if ($validated['status'] == 'FAILED') {
+                $transaction->loanApplication->update([
+                    'status' => 'Rejected',
+                    'rejected_at' => now(),
+                ]);
+            }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Callback processed successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error processing payment callback', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error processing callback'
+            ], 500);
+        }
     }
 }

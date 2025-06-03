@@ -267,7 +267,8 @@ class LoanApplicationController extends Controller
             "reference" => $reference,
             "amount" => $amount,
             "description" => "Loan Disbursement",
-            "callback_url" => ""
+            "callback_url" => route('handleCallback'),
+
         ];
         // Compute the signature
         try {

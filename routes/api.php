@@ -19,3 +19,4 @@ Route::post('/loans/{loan_id}/repay', [LoanRepaymentController::class, 'repay'])
 Route::get('/products', [LoanApplicationController::class, 'getProducts']);
 Route::get('/institutions', [LoanApplicationController::class, 'getInstitutions']);
 Route::get('/product-terms/{product}', [LoanApplicationController::class, 'getProductTerms']);
+Route::post('/handleCallback', [TransactionController::class, 'handleCallback'])->name('handleCallback');
