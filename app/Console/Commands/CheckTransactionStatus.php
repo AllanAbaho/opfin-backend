@@ -2,13 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Account;
-use App\Models\JournalEntry;
-use App\Models\Loan;
-use App\Models\LoanApplication;
 use App\Models\Transaction;
 use App\Services\LoanService;
-use App\Services\SmsService;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
