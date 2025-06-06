@@ -161,10 +161,8 @@ class AuthController extends Controller
                 'message' => json_encode($validator->errors()),
             ]);
         }
-        $phone = ltrim($request->phone, '0');
-        $phone = '256' . $phone; // Ensure phone number is in the correct format
         // Find user by phone
-        $user = User::where('phone', $phone)->first();
+        $user = User::where('phone', $request->phone)->first();
 
         if (!$user) {
             return response()->json([
