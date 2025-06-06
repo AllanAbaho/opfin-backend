@@ -25,12 +25,13 @@ class LoanApplicationController extends Controller
     public function index($id)
     {
         try {
-            $applications = LoanApplication::where('user_id', $id)->with(['user', 'loanProduct', 'loanProductTerm', 'institution'])->get();
+            $applications = LoanApplication::where('user_id', $id)->with(['user', 'loanProduct', 'loanProductTerm', 'institution', 'loan'])->get();
             return response()->json(['data' => $applications], 200);
         } catch (Exception $e) {
             return response()->json(['error', $e->getMessage()], 500);
         }
     }
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -43,17 +44,23 @@ class LoanApplicationController extends Controller
         ]);
 
         if ($validator->fails()) {
-            throw new Exception($validator->errors()->first());
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors()
+            ], 422);
         }
-
 
         try {
             $phone = User::find($request->user_id)->phone;
-            if (str_starts_with($phone, '+25676') || str_starts_with($phone, '+25677') || str_starts_with($phone, '+25678')) {
+            if (str_starts_with($phone, '25676') || str_starts_with($phone, '25677') || str_starts_with($phone, '25678')) {
                 $network  = 'MTNMM';
-            } else if (str_starts_with($phone, '+25670') || str_starts_with($phone, '+25674') || str_starts_with($phone, '+25675')) {
+            } else if (str_starts_with($phone, '25670') || str_starts_with($phone, '25674') || str_starts_with($phone, '25675')) {
                 $network  = 'AIRTELMM';
+            } else {
+                $network = null;
             }
+
             $accountBalance = 0;
             $getBalancesResponse = $this->getBalances();
             if ($getBalancesResponse['success']) {
@@ -61,23 +68,34 @@ class LoanApplicationController extends Controller
                 $accountBalance = $data->firstWhere('name', $network)['amount'] ?? null;
             }
             if ($request->amount > $accountBalance) {
-                throw new Exception('We cannot process this request at this time, please try an amount less than UGX ' . number_format($accountBalance));
+                return response()->json([
+                    'success' => false,
+                    'message' => 'We cannot process this request at this time, please try an amount less than UGX ' . number_format($accountBalance)
+                ], 400);
             }
+
             // Check if the user has any uncleared loans
             $unclearedLoan = Loan::where('user_id', $request->user_id)
                 ->whereNotIn('status', ['Cleared', 'Completed'])
                 ->first();
 
             if ($unclearedLoan) {
-                throw new Exception('You have an uncleared loan, please clear that first to be able to qualify another loan.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have an uncleared loan, please clear that first to be able to qualify for another loan.'
+                ], 400);
             }
-            // Check if the user has any uncleared loans
+
+            // Check if the user has any pending applications
             $pendingApplication = LoanApplication::where('user_id', $request->user_id)
                 ->where('status', 'Pending')
                 ->first();
 
             if ($pendingApplication) {
-                throw new Exception('You already have a pending application, please wait for it to get processed.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You already have a pending application, please wait for it to get processed.'
+                ], 400);
             }
 
             $loanApplication = LoanApplication::create([
@@ -95,10 +113,18 @@ class LoanApplicationController extends Controller
             ]);
             $this->createTransaction($loanApplication);
 
-            return response()->json(['message' => 'Application submitted successfully', 'data' => $loanApplication], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Application submitted successfully.',
+                'data' => $loanApplication
+            ], 201);
         } catch (\Exception $e) {
             Log::error('Error creating loan application: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating loan application. ' . $e->getMessage(),
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 

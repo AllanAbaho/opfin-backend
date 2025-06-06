@@ -19,21 +19,29 @@ class LoanRepaymentController extends Controller
      * @param  int  $loan_id
      * @return \Illuminate\Http\JsonResponse
      */
+
     public function repay(Request $request, $loan_id)
     {
+        Log::info('Processing loan repayment for loan ID: ' . $loan_id);
         $validator = Validator::make($request->all(), [
             'amount' => 'required|numeric|min:1',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
         }
 
         try {
             $loan = Loan::findOrFail($loan_id);
 
             if ($request->amount > $loan->totalOutstandingAmount()) {
-                return response()->json(['error' => 'Amount exceeds the repayment amount.'], 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Amount exceeds the repayment amount.'
+                ], 400);
             }
 
             $transaction = Transaction::where('loan_id', $loan->id)
@@ -41,7 +49,10 @@ class LoanRepaymentController extends Controller
                 ->where('status', 'Pending')
                 ->first();
             if ($transaction) {
-                return response()->json(['error' => 'There is a pending repayment transaction, please go ahead make payment.'], 400);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have a pending repayment transaction. Please complete the payment on your phone. We will notify you once the transaction is successful.'
+                ], 409);
             }
 
             // Create a repayment transaction
@@ -57,9 +68,7 @@ class LoanRepaymentController extends Controller
                 'status' => 'Pending',
             ]);
             // Make payment API call
-            $paymentResponse = $this->initiateMobileMoneyPayIn(
-                $repaymentTransaction,
-            );
+            $paymentResponse = $this->initiateMobileMoneyPayIn($repaymentTransaction);
             Log::info("Mobile Money PayIn Response: ", [$paymentResponse]);
             if (!$paymentResponse['success']) {
                 throw new \Exception($paymentResponse['message'] ?? 'Payment processing failed');
@@ -73,14 +82,21 @@ class LoanRepaymentController extends Controller
             ];
 
             $repaymentTransaction->update($updateData);
-            return response()->json(['message' => 'Please go ahead and complete payment on your phone', 'success' => true]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment request initiated. Please complete the payment on your phone. You will be notified once the transaction is successful.'
+            ], 200);
         } catch (\Exception $e) {
             Log::error('Error processing loan repayment: ' . $e->getMessage());
-            // Update repaymentTransaction with failure status
-            $repaymentTransaction->update([
-                'status' => 'FAILED',
-            ]);
-            return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
+            if (isset($repaymentTransaction)) {
+                $repaymentTransaction->update([
+                    'status' => 'FAILED',
+                ]);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
